@@ -99,5 +99,7 @@ Generate temporary MCAPs with the official writers. Test the full pipeline and
 CLI, then boundary cases and negative detection examples. Keep a separate
 manually serialized CDR diagnostic fixture to avoid relying exclusively on a
 writer/reader round trip. CI covers Python 3.11–3.14 on Linux and 3.13 on Windows.
-Local results are recorded separately; a configured CI matrix is not a claim
-that all environments have passed.
+Local ROS runtime results are recorded separately from the offline CI matrix.
+The first public CI run passed all five configured Python/OS jobs; see
+[validation evidence](VALIDATION.md). CI rechecks saved native fixtures and
+does not launch a new ROS/Nav2 simulation.

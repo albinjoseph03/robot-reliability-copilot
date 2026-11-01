@@ -140,4 +140,5 @@ interface definitions and dependencies retain their upstream licenses; see
 [third-party notices](THIRD_PARTY_NOTICES.md). No external robot datasets are
 included. Small original ROS/Nav2 recordings and their ground truth are retained
 as regression fixtures. Runtime compatibility claims cover only the tested
-combination and documented schema workaround; broader CI and release validation remain.
+combination and documented schema workaround. The configured Python/OS CI matrix
+passes; additional ROS/recorder combinations still need runtime validation.

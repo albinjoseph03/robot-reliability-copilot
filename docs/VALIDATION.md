@@ -41,10 +41,17 @@ The release artifact must include the report modules, console entry point,
 Apache license, notices and retained UUID BSD license. The source distribution
 also includes docs, fixtures, tests and CI configuration.
 
-## Not yet validated
+## Public repository and CI
 
-- GitHub Actions is configured for Linux Python 3.11–3.14 and Windows Python
-  3.13, but no remote CI run is claimed for this unpublished workspace.
+Published 2026-11-01 under Apache-2.0. The
+[first public CI run](https://github.com/albinjoseph03/robot-reliability-copilot/actions/runs/41276903572)
+passed all five jobs: Linux Python 3.11, 3.12, 3.13 and 3.14; Windows Python 3.13.
+Each job completed lint/format checks, tests, package build and sample CLI
+analysis. These jobs use the saved native recordings; they do not launch ROS.
+GitHub private vulnerability reporting is enabled; see [SECURITY.md](../SECURITY.md).
+
+## Remaining limits
+
 - Real runtime validation covers Ubuntu 24.04 / WSL2, Jazzy, rosbag2 0.26.11,
   Nav2 1.3.13 and Gazebo 8.15.0 with the documented schema workaround. Other
   runtime combinations have not been validated.
@@ -54,6 +61,5 @@ also includes docs, fixtures, tests and CI configuration.
   guardrails, not hostile-input isolation or a safety certification.
 
 The [executed integration evidence](INTEGRATION_RESULTS.md) documents native
-client-result/UUID ground truth and positive/negative controls. Before
-publication, configure a real private security reporting channel and run the
-configured CI matrix.
+client-result/UUID ground truth and positive/negative controls. Broader ROS
+runtime support and large-recording resource budgets need additional validation.

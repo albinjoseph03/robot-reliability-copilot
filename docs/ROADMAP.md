@@ -28,10 +28,11 @@ See [the evidence and limits](INTEGRATION_RESULTS.md).
 
 ## Next: release and broader compatibility
 
-Exercise the configured Python/OS CI matrix after creating the public repository,
-configure a concrete private security reporting channel, and test another
-supported recorder/distribution combination. Benchmark representative large
-recordings before advertising memory or performance budgets.
+The public repository, five-job Python/OS CI matrix and private vulnerability
+reporting are now configured and verified. Next, test another supported
+recorder/distribution combination and benchmark representative large recordings
+before advertising memory or performance budgets. Collect developer feedback
+through reproducible issue reports before broadening detector scope.
 
 ## Then: improve reliability based on users
 

@@ -92,5 +92,9 @@ The final suite reports **65 passed** with Ruff checks passing.
 These observations validate this controlled software scenario and runtime
 combination. They do not establish real-world failure labels, fleet-scale
 performance, physical safety, causal root-cause detection, or compatibility
-with other distributions/recorders. A GitHub CI run and a concrete private
-security reporting channel are still required before public release.
+with other distributions/recorders.
+
+Publication update, 2026-11-01: the project is public under Apache-2.0, GitHub
+private vulnerability reporting is enabled, and the first five-job Python/OS
+CI matrix passed. See [the CI evidence](VALIDATION.md). Those CI jobs validate
+the offline application and saved recordings, not new ROS simulations.
