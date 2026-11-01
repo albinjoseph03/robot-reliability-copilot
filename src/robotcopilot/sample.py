@@ -56,6 +56,24 @@ uint32 nanosec
 
 BASE_TIME_NS = 1_700_000_000_000_000_000
 
+LOG_SCHEMA = """builtin_interfaces/Time stamp
+uint8 DEBUG=10
+uint8 INFO=20
+uint8 WARN=30
+uint8 ERROR=40
+uint8 FATAL=50
+uint8 level
+string name
+string msg
+string file
+string function
+uint32 line
+================================================================================
+MSG: builtin_interfaces/Time
+int32 sec
+uint32 nanosec
+"""
+
 
 def diagnostic_message(level: int, time_ns: int, component: str = "motor_controller") -> dict:
     return {

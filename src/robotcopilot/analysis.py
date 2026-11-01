@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from . import __version__
+from .context import attach_log_context
 from .detectors import Detector
 from .detectors.rules import DiagnosticTransitions, NavigationAborts, telemetry_gaps
 from .ingestion import scan_recording
@@ -17,6 +18,7 @@ def analyze(path: Path, config: AnalysisConfig | None = None) -> Report:
     incidents = [incident for detector in detectors for incident in detector.finish()]
     incidents.extend(telemetry_gaps(scan.telemetry, config.expected_rates_hz, config.gap_factor))
     incidents.sort(key=lambda i: (i.start_time_ns, i.evidence[0].message_index))
+    attach_log_context(incidents, scan, config)
     errors = sum(i.severity == "error" for i in incidents)
     warnings = len(incidents) - errors
     return Report(

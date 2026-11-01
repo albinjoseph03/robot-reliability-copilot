@@ -17,6 +17,7 @@ from .models import (
     Event,
     Evidence,
     GoalStatusEvent,
+    LogEntry,
     RecordingInfo,
 )
 
@@ -24,6 +25,8 @@ DIAGNOSTIC_TYPE = "diagnostic_msgs/msg/DiagnosticArray"
 STATUS_TYPE = "action_msgs/msg/GoalStatusArray"
 DIAGNOSTIC_TYPES = {DIAGNOSTIC_TYPE, "diagnostic_msgs/DiagnosticArray"}
 STATUS_TYPES = {STATUS_TYPE, "action_msgs/GoalStatusArray"}
+LOG_TYPES = {"rcl_interfaces/msg/Log", "rcl_interfaces/Log"}
+LOG_LEVEL_NAMES = {10: "DEBUG", 20: "INFO", 30: "WARN", 40: "ERROR", 50: "FATAL"}
 
 
 class RecordingError(Exception):
@@ -36,6 +39,7 @@ class Scan:
     events: list[Event]
     telemetry: list[Evidence]
     coverage: list[CoverageIssue]
+    logs: list[LogEntry]
 
 
 def _stamp(stamp: object) -> int:
@@ -84,12 +88,28 @@ def _normalize(decoded: object, ref: Evidence, diagnostic: bool) -> list[Event]:
     return result
 
 
+def _normalize_log(decoded: object, ref: Evidence) -> LogEntry:
+    return LogEntry(
+        evidence=ref.model_copy(update={"field_path": "msg"}),
+        stamp_time_ns=_stamp(decoded.stamp),
+        level=decoded.level,
+        level_name=LOG_LEVEL_NAMES.get(decoded.level, f"LEVEL_{decoded.level}"),
+        logger=decoded.name,
+        message=decoded.msg,
+        file=decoded.file,
+        function=decoded.function,
+        line=decoded.line,
+    )
+
+
 def scan_recording(path: Path, config: AnalysisConfig) -> Scan:
     schemas: dict[int, Schema] = {}
     channels: dict[int, Channel] = {}
     info: dict[int, ChannelInfo] = {}
     events: list[Event] = []
     telemetry: list[Evidence] = []
+    logs: list[LogEntry] = []
+    context_enabled = bool(config.log_topics) and config.context_window_seconds > 0
     issues: dict[tuple[str, int | None], CoverageIssue] = {}
     factory = DecoderFactory()
     count = 0
@@ -176,14 +196,19 @@ def scan_recording(path: Path, config: AnalysisConfig) -> Scan:
                         and schema.name in STATUS_TYPES
                         and channel.topic in config.navigation_status_topics
                     )
-                    if not (diagnostic or navigation):
+                    # Typed log data never changes detector state, even if context is disabled
+                    # or the log cannot be decoded on a mixed-type topic.
+                    known_log = schema is not None and schema.name in LOG_TYPES
+                    ros_log = context_enabled and known_log and channel.topic in config.log_topics
+                    if not (diagnostic or navigation or ros_log):
                         ci.skipped_message_count += 1
                         issue(
                             "unsupported_message",
                             "Payload not analyzed by an enabled detector.",
                             ref,
                         )
-                        events.append(CoverageBreak(evidence=ref))
+                        if not known_log:
+                            events.append(CoverageBreak(evidence=ref))
                     elif schema.encoding != "ros2msg" or channel.message_encoding != "cdr":
                         ci.skipped_message_count += 1
                         issue(
@@ -191,13 +216,16 @@ def scan_recording(path: Path, config: AnalysisConfig) -> Scan:
                             "Requires embedded ros2msg schema and CDR encoding.",
                             ref,
                         )
-                        events.append(CoverageBreak(evidence=ref))
+                        if not known_log:
+                            events.append(CoverageBreak(evidence=ref))
                     else:
                         try:
                             decoder = factory.decoder_for(channel.message_encoding, schema)
                             if decoder is None:
                                 raise ValueError("no compatible decoder")
-                            normalized = _normalize(decoder(record.data), ref, diagnostic)
+                            decoded = decoder(record.data)
+                            log = _normalize_log(decoded, ref) if ros_log else None
+                            normalized = [] if ros_log else _normalize(decoded, ref, diagnostic)
                         except Exception as exc:
                             # Parsing untrusted schemas/CDR is the isolation boundary. Do not
                             # expose exception text that may contain arbitrary recorded data.
@@ -207,10 +235,14 @@ def scan_recording(path: Path, config: AnalysisConfig) -> Scan:
                                 f"Message could not be decoded/validated ({type(exc).__name__}).",
                                 ref,
                             )
-                            events.append(CoverageBreak(evidence=ref))
+                            if not known_log:
+                                events.append(CoverageBreak(evidence=ref))
                         else:
                             ci.decoded_message_count += 1
                             events.extend(normalized)
+                            # Lower severities are decoded for coverage, not retained as context.
+                            if log is not None and log.level >= 30:
+                                logs.append(log)
                             if diagnostic and not normalized:
                                 issue(
                                     "empty_diagnostic_array",
@@ -218,7 +250,7 @@ def scan_recording(path: Path, config: AnalysisConfig) -> Scan:
                                     "health is unknown.",
                                     ref,
                                 )
-                    if len(events) + len(telemetry) > config.max_events:
+                    if len(events) + len(telemetry) + len(logs) > config.max_events:
                         raise ValueError(f"observation limit ({config.max_events}) exceeded")
             if stream.read(1):
                 raise ValueError("trailing data after MCAP footer")
@@ -256,9 +288,22 @@ def scan_recording(path: Path, config: AnalysisConfig) -> Scan:
                 "insufficient_telemetry:" + topic,
                 f"Fewer than two messages on {topic}; cannot assess intervals.",
             )
+    if context_enabled:
+        for topic in config.log_topics:
+            if not any(
+                c.topic == topic and c.schema_name in LOG_TYPES and c.decoded_message_count
+                for c in info.values()
+            ):
+                issue(
+                    "log_context_unavailable:" + topic,
+                    f"No decodable ROS Log messages on {topic}; nearby log context is unavailable.",
+                )
+    else:
+        issue("log_context_disabled", "Nearby log context is disabled by configuration.")
     # Stable sorting preserves entry order within a DiagnosticArray/GoalStatusArray.
     events.sort(key=lambda e: (e.evidence.log_time_ns, e.evidence.message_index))
     telemetry.sort(key=lambda e: (e.log_time_ns, e.message_index))
+    logs.sort(key=lambda entry: (entry.evidence.log_time_ns, entry.evidence.message_index))
     return Scan(
         recording=RecordingInfo(
             path=str(path),
@@ -274,4 +319,5 @@ def scan_recording(path: Path, config: AnalysisConfig) -> Scan:
         events=events,
         telemetry=telemetry,
         coverage=list(issues.values()),
+        logs=logs,
     )

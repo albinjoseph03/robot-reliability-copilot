@@ -6,7 +6,7 @@ See `uv.lock` for the exact resolved dependency graph.
 
 ## Automated checks
 
-`pytest -q`: **65 passed**. The suite uses actual temporary MCAP files, the
+`pytest -q`: **98 passed** for 0.2.0. The suite uses actual temporary MCAP files, the
 official Python writers, CLI invocation, and an independently serialized
 little-endian XCDR1 diagnostic payload. No LLM supplies labels or telemetry.
 It also checks saved native ROS/rosbag2/Nav2 recordings, including a real
@@ -34,6 +34,13 @@ missing-schema negative fixture. These saved-fixture tests do not relaunch ROS.
 | Native Nav2 controls | Abort UUID matches client result; success/cancellation excluded even when result error_code=0 | Every Nav2/ROS distribution or physical navigation defect |
 | Native schema-less recording | The actual rosbag2 omission remains explicit incomplete coverage | Recovery of missing schemas |
 | Companion identity / verifier rejection | Native CDR bytes and publish timestamps match CLI recording; changed timestamps are rejected | Authenticity of arbitrary external manifests |
+
+Additional 0.2 checks cover exact context boundaries, nearest-log caps, ordering,
+source/log clock separation, absent/partial/disabled/remapped topics, custom
+severity values, literal rendering and unrelated warnings without incidents.
+The new native rosout fixture verifies the missing-BT log's exact fields,
+reference and raw CLI bytes/publish time. These checks establish temporal
+association, not causation. See [the full context contract](LOG_CONTEXT.md).
 
 `ruff check .` and `ruff format --check .` passed. Wheel and source
 distribution are built with `uv build --offline` using the cached build backend.

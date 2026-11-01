@@ -30,10 +30,12 @@ Use an unused DDS domain ID on a disposable simulation system. The default is
 ```bash
 bash scripts/integration/run_capture.sh diagnostics --output artifacts/ros-diagnostics
 bash scripts/integration/run_capture.sh navigation --output artifacts/nav2-gazebo
+bash scripts/integration/run_capture.sh navigation --with-rosout --output artifacts/nav2-rosout
 
 # Back in the analyzer environment (does not need sourced ROS):
 uv run python scripts/integration/verify_capture.py artifacts/ros-diagnostics
 uv run python scripts/integration/verify_capture.py artifacts/nav2-gazebo
+uv run python scripts/integration/verify_capture.py artifacts/nav2-rosout
 ```
 
 For Windows/WSL, call `wsl -d Ubuntu -- bash` with the absolute `/mnt/f/...`
@@ -59,9 +61,18 @@ a companion `navigation_embedded/` using the native `rosbag2_py` writer with
 the equivalent two-part ROS type name. This uses the installed standard message
 definitions through rosbag2's normal MSG lookup, without editing the ROS install.
 The subscriber receives **raw DDS CDR bytes**. Verification requires identical
-CDR bytes and publish timestamps in both recordings, matching counts, and the
-same goal UUIDs as client results. The offline analyzer never fills in missing
+status CDR bytes and publish timestamps in both recordings, matching per-topic
+counts, and the same goal UUIDs as client results. The offline analyzer never fills in missing
 schemas. See the [upstream definition-selection code](https://github.com/ros2/rosbag2/blob/jazzy/rosbag2_cpp/src/rosbag2_cpp/message_definitions/local_message_definition_source.cpp).
+
+`--with-rosout` also records live raw ROS logs through the companion writer and
+requires exactly one observed missing-BT ERROR from bt_navigator. It injects
+an explicitly unrelated warning to verify logs do not become incidents. The
+verifier checks the exact log fields/reference in the incident's temporal-only
+context, and requires every companion log payload/publish timestamp to occur
+in the untouched CLI recording. The CLI may include additional latched startup
+logs, so total log counts can differ. Companion metadata counts must still match
+the analyzer. Source log stamps and MCAP log time are not substituted for one another.
 
 Rejected goals, missing recordings, timeouts and failed controls fail the
 capture. The verifier checks counts against rosbag2 metadata, decodability,

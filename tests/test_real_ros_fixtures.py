@@ -87,3 +87,65 @@ def test_verifier_rejects_companion_with_different_publish_timestamps(tmp_path):
         writer.finish()
     with pytest.raises(AssertionError, match="CDR bytes/publish timestamps"):
         verify(folder)
+
+
+def test_native_nav2_context_keeps_missing_bt_error_and_unrelated_warning_separate():
+    folder = FIXTURES / "navigation_context"
+    truth = json.loads((folder / "ground-truth.json").read_text())
+    report = analyze(
+        folder / "recording.mcap",
+        AnalysisConfig(
+            navigation_status_topics=[truth["topic"]],
+        ),
+    )
+    assert report.recording.message_count == 30 and len(report.incidents) == 1
+    assert {c.topic: c.decoded_message_count for c in report.recording.channels} == {
+        truth["topic"]: 7,
+        "/rosout": 23,
+    }
+    incident = report.incidents[0]
+    assert incident.hypotheses == [] and len(incident.evidence) == 1
+    context = incident.log_context
+    assert context.association == "time_proximity_only" and context.matching_log_count == 7
+    expected = truth["expected_log_context"]
+    entry = next(e for e in context.logs if e.message == expected["message"])
+    assert entry.logger == expected["logger"] and entry.level == expected["level"]
+    assert entry.stamp_time_ns == expected["stamp_time_ns"]
+    assert entry.evidence.publish_time_ns == expected["publish_time_ns"]
+    assert entry.file.endswith("navigate_to_pose.cpp") and entry.line > 0
+    assert any("Unrelated fixture warning" in e.message for e in context.logs)
+
+
+def test_native_context_verifier_checks_log_bytes_and_ground_truth(tmp_path):
+    folder = tmp_path / "context"
+    shutil.copytree(FIXTURES / "navigation_context", folder)
+    result = verify(folder)
+    assert result["payload_identity_verified"] and result["log_context_verified"]
+
+
+def test_native_raw_logs_do_not_replace_missing_navigation_evidence():
+    folder = FIXTURES / "navigation_context"
+    truth = json.loads((folder / "ground-truth.json").read_text())
+    report = analyze(
+        folder / "navigation/raw.mcap",
+        AnalysisConfig(
+            navigation_status_topics=[truth["topic"]],
+        ),
+    )
+    assert not report.incidents
+    assert (
+        next(c for c in report.recording.channels if c.topic == "/rosout").decoded_message_count > 0
+    )
+    assert f"navigation_unavailable:{truth['topic']}" in {c.code for c in report.coverage}
+
+
+def test_native_context_verifier_rejects_invented_ground_truth(tmp_path):
+    folder = tmp_path / "context"
+    shutil.copytree(FIXTURES / "navigation_context", folder)
+    path = folder / "ground-truth.json"
+    truth = json.loads(path.read_text())
+    truth["expected_log_context"]["message"] = "invented root cause"
+    path.write_text(json.dumps(truth), encoding="utf-8")
+    with pytest.raises(AssertionError, match="Missing exact recorded"):
+        verify(folder)
+    assert not (folder / "report.json").exists()

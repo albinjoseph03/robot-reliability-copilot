@@ -144,7 +144,7 @@ def record_command(folder, *topics):
 
 
 @contextmanager
-def status_recording(folder):
+def status_recording(folder, with_rosout=False):
     """Use the native writer's installed-schema lookup with the equivalent ROS type alias.
 
     Jazzy rosbag2 0.26.11 incorrectly treats the canonical GoalStatusArray name
@@ -166,6 +166,15 @@ def status_recording(folder):
             serialization_format="cdr",
         )
     )
+    if with_rosout:
+        writer.create_topic(
+            rosbag2_py.TopicMetadata(
+                id=1,
+                name="/rosout",
+                type="rcl_interfaces/msg/Log",
+                serialization_format="cdr",
+            )
+        )
     try:
         yield writer
     finally:
@@ -233,11 +242,12 @@ def capture_diagnostics(output, env):
         rclpy.shutdown()
 
 
-def capture_navigation(output, env):
+def capture_navigation(output, env, with_rosout=False):
     import rclpy
     from action_msgs.msg import GoalStatusArray
     from geometry_msgs.msg import PoseWithCovarianceStamped
     from nav2_msgs.action import NavigateToPose
+    from rcl_interfaces.msg import Log
     from rclpy.action import ActionClient
     from rclpy.parameter import Parameter
     from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
@@ -252,6 +262,7 @@ def capture_navigation(output, env):
     initial_pose = node.create_publisher(PoseWithCovarianceStamped, "/initialpose", 10)
     client = ActionClient(node, NavigateToPose, "/navigate_to_pose")
     statuses = []
+    observed_logs = []
     writer = None
 
     def collect(payload, message_info):
@@ -280,6 +291,40 @@ def capture_navigation(output, env):
         status_qos,
         raw=True,
     )
+    if with_rosout:
+
+        def collect_log(payload, message_info):
+            if writer is None:
+                return
+            message = deserialize_message(payload, Log)
+            writer.write(
+                "/rosout",
+                payload,
+                message_info["received_timestamp"] or time.time_ns(),
+                message_info["source_timestamp"],
+            )
+            observed_logs.append(
+                {
+                    "logger": message.name,
+                    "level": message.level,
+                    "message": message.msg,
+                    "stamp_time_ns": message.stamp.sec * 10**9 + message.stamp.nanosec,
+                    "publish_time_ns": message_info["source_timestamp"],
+                }
+            )
+
+        # Capture live messages; do not replay latched startup history into the test window.
+        node.create_subscription(
+            Log,
+            "/rosout",
+            collect_log,
+            QoSProfile(
+                depth=1000,
+                reliability=ReliabilityPolicy.RELIABLE,
+                durability=DurabilityPolicy.VOLATILE,
+            ),
+            raw=True,
+        )
     goals = []
 
     def send_goal(label, x, y, behavior_tree="", cancel=False, timeout=90):
@@ -371,15 +416,21 @@ def capture_navigation(output, env):
             embedded_folder = output / "navigation_embedded"
             spin_for(node, 2)
             baseline_subscribers = node.count_subscribers(NAVIGATION_TOPIC)
+            baseline_log_subscribers = node.count_subscribers("/rosout")
+            topics = [NAVIGATION_TOPIC] + (["/rosout"] if with_rosout else [])
             with (
-                status_recording(embedded_folder) as writer,
-                process(
-                    record_command(folder, NAVIGATION_TOPIC), output / "recorder.log", env
-                ) as recorder,
+                status_recording(embedded_folder, with_rosout) as writer,
+                process(record_command(folder, *topics), output / "recorder.log", env) as recorder,
             ):
                 wait_for(
                     node,
-                    lambda: node.count_subscribers(NAVIGATION_TOPIC) > baseline_subscribers,
+                    lambda: (
+                        node.count_subscribers(NAVIGATION_TOPIC) > baseline_subscribers
+                        and (
+                            not with_rosout
+                            or node.count_subscribers("/rosout") > baseline_log_subscribers
+                        )
+                    ),
                     30,
                     "waiting for status recorder and fixture subscriptions",
                     [recorder],
@@ -391,6 +442,11 @@ def capture_navigation(output, env):
                 if success["status"] != 4:
                     raise RuntimeError(f"Success control did not succeed: {success}")
                 # Failure injection is software configuration, not a physical failure label.
+                if with_rosout:
+                    node.get_logger().warning(
+                        "Unrelated fixture warning; no navigation failure implied."
+                    )
+                    spin_for(node, 0.2)
                 missing = str((output / "intentionally-missing-bt.xml").resolve())
                 failure = send_goal("missing_behavior_tree", x, y, missing)
                 if failure["status"] != 6:
@@ -401,7 +457,7 @@ def capture_navigation(output, env):
                 spin_for(node, 2)
             writer = None
             write_json(output / "observed-statuses.json", statuses)
-            return {
+            manifest = {
                 "kind": "nav2_gazebo",
                 "topic": NAVIGATION_TOPIC,
                 "bag": "navigation_embedded",
@@ -416,6 +472,19 @@ def capture_navigation(output, env):
                     "retained in navigation/."
                 ),
             }
+            if with_rosout:
+                write_json(output / "observed-logs.json", observed_logs)
+                expected = [
+                    entry
+                    for entry in observed_logs
+                    if entry["logger"] == "bt_navigator"
+                    and entry["level"] == 40
+                    and "BT file not found:" in entry["message"]
+                ]
+                if len(expected) != 1:
+                    raise RuntimeError("Expected exactly one observed missing-BT rosout error.")
+                manifest["expected_log_context"] = expected[0]
+            return manifest
     finally:
         # Keep listener/subscription alive until capture completes.
         del listener, subscription
@@ -429,7 +498,14 @@ def main():
     parser.add_argument("scenario", choices=["diagnostics", "navigation"])
     parser.add_argument("--output", type=Path, required=True, help="New output directory")
     parser.add_argument("--domain-id", type=int, default=73)
+    parser.add_argument(
+        "--with-rosout",
+        action="store_true",
+        help="Also capture live /rosout and require the missing-BT error (navigation only).",
+    )
     args = parser.parse_args()
+    if args.with_rosout and args.scenario != "navigation":
+        parser.error("--with-rosout requires the navigation scenario")
     if os.environ.get("ROS_DISTRO") != "jazzy":
         raise SystemExit("Source /opt/ros/jazzy/setup.bash first.")
     if not 0 <= args.domain_id <= 200:
@@ -445,8 +521,11 @@ def main():
     env = dict(os.environ)
     environment = versions()
     write_json(args.output / "environment.json", environment)
-    scenario = capture_diagnostics if args.scenario == "diagnostics" else capture_navigation
-    manifest = scenario(args.output, env)
+    manifest = (
+        capture_diagnostics(args.output, env)
+        if args.scenario == "diagnostics"
+        else capture_navigation(args.output, env, with_rosout=args.with_rosout)
+    )
     manifest["environment"] = environment
     manifest["domain_id"] = args.domain_id
     write_json(args.output / "ground-truth.json", manifest)

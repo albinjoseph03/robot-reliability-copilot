@@ -87,7 +87,9 @@ input. Both recordings are retained as positive/negative regression fixtures.
 
 Follow [the integration harness instructions](../scripts/integration/README.md).
 The normal test suite rechecks the saved native bytes without launching ROS.
-The final suite reports **65 passed** with Ruff checks passing.
+The initial 0.1 suite reported **65 passed** with Ruff checks passing.
+Version 0.2 adds a fresh recorded-rosout scenario and regression coverage;
+see [log context validation](LOG_CONTEXT.md).
 
 These observations validate this controlled software scenario and runtime
 combination. They do not establish real-world failure labels, fleet-scale

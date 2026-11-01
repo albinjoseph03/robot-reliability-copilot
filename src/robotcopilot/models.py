@@ -48,6 +48,29 @@ class CoverageBreak(Model):
 Event = DiagnosticEvent | GoalStatusEvent | CoverageBreak
 
 
+class LogEntry(Model):
+    evidence: Evidence
+    stamp_time_ns: int
+    level: int = Field(ge=0, le=255)
+    level_name: str
+    logger: str
+    message: str
+    file: str
+    function: str
+    line: int = Field(ge=0, le=2**32 - 1)
+
+
+class LogContext(Model):
+    association: Literal["time_proximity_only"] = "time_proximity_only"
+    availability: Literal["available", "partial", "unavailable", "disabled"]
+    window_start_time_ns: int
+    window_end_time_ns: int
+    matching_log_count: int = 0
+    omitted_log_count: int = 0
+    logs: list[LogEntry] = Field(default_factory=list)
+    limitations: list[str] = Field(default_factory=list)
+
+
 class Incident(Model):
     id: str
     category: Literal["diagnostic", "navigation", "missing_telemetry"]
@@ -64,6 +87,7 @@ class Incident(Model):
     limitations: list[str]
     hypotheses: list[str] = Field(default_factory=list)
     recommended_steps: list[str]
+    log_context: LogContext | None = None
 
 
 class ChannelInfo(Model):
@@ -107,6 +131,16 @@ class AnalysisConfig(Model):
     max_messages: int = Field(default=1_000_000, ge=1)
     max_events: int = Field(default=1_000_000, ge=1)
     max_record_bytes: int = Field(default=64 * 1024 * 1024, ge=1)
+    log_topics: list[str] = Field(default_factory=lambda: ["/rosout"])
+    context_window_seconds: float = Field(default=5.0, ge=0, le=3600, allow_inf_nan=False)
+    max_context_logs: int = Field(default=20, ge=1, le=1000)
+
+    @field_validator("log_topics")
+    @classmethod
+    def valid_log_topics(cls, topics: list[str]) -> list[str]:
+        if any(not topic.startswith("/") for topic in topics):
+            raise ValueError("log topics must be absolute ROS topic names")
+        return list(dict.fromkeys(topics))
 
     @field_validator("navigation_status_topics")
     @classmethod
@@ -127,7 +161,7 @@ class AnalysisConfig(Model):
 
 
 class Report(Model):
-    report_version: Literal["0.1"] = "0.1"
+    report_version: Literal["0.2"] = "0.2"
     tool_version: str
     recording: RecordingInfo
     config: AnalysisConfig

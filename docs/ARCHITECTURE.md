@@ -12,6 +12,7 @@ src/robotcopilot/
   ingestion.py       MCAP scan, schema decoding, normalization, coverage
   detectors/         Stateful diagnostic, action-status, configured-gap rules
   analysis.py        Chronological processing and report assembly
+  context.py         Bounded time-proximity log association after detection
   reporting.py       Rich text and JSON serialization
   sample.py          Reproducible, synthetic CDR/ros2msg recording
 tests/               Generated MCAP fixtures and end-to-end tests
@@ -38,6 +39,13 @@ explanation, limitations, and verification steps. Hypotheses are a separate
 field, empty by default. An end time means a later observed state change, not
 proof of physical recovery. An unresolved incident ends at `null`.
 
+ROS Log entries are separate context observations, never detector inputs.
+After detectors finish, `context.py` uses MCAP log time to find WARN-or-higher
+messages around each incident's first observation. Nearest entries are capped
+and then sorted chronologically. Availability, omitted counts and separate
+source stamps are explicit. Context does not alter incident IDs, detector
+evidence, categories, severity or hypotheses. See [the 0.2 contract](LOG_CONTEXT.md).
+
 ## CLI
 
 - `robotcopilot sample demo.mcap`: generate synthetic diagnostics.
@@ -48,6 +56,9 @@ proof of physical recovery. An unresolved incident ends at `null`.
   declare an action-status topic as navigation evidence; no naming inference.
 - `--expect-rate /odom=10 --gap-factor 3`: flag observed intervals exceeding
   three configured periods. No automatically inferred rate or boundary gaps.
+
+- `--context-window 5 --max-context-logs 20`: bounded nearby logs; zero window disables.
+- `--log-topic /robot/rosout`: override default /rosout; repeat for multiple topics.
 
 Exit 0 means analysis completed (including incidents or incomplete coverage),
 1 means unreadable/corrupt input or output failure, 2 means invalid CLI usage.

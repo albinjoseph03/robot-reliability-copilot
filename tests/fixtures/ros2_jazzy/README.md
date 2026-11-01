@@ -21,6 +21,12 @@ tree (6), and acknowledged cancellation (5). UUIDs and results were saved by
 the native action client. The abort result's `error_code` was zero; terminal
 status is the verified abort evidence.
 
+The 0.2 `navigation_context/recording.mcap` adds seven status and 23 live rosout
+messages (30 total), yielding one abort and seven nearby qualifying logs,
+including the native missing-BT error. Its `navigation/raw.mcap` is the
+simultaneous CLI capture with additional latched startup logs. All companion
+log CDR bytes/publish times occur there; status sequences are identical.
+
 Each directory includes ground-truth data with exact runtime/package versions
 and the original verification result/SHA-256. Only file locations in the
 ground-truth manifests were updated when relocating the captures; MCAP bytes

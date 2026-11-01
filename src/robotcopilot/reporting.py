@@ -73,6 +73,32 @@ def print_report(report: Report, console: Console) -> None:
             )
         for limitation in incident.limitations:
             line(f"  Limitation: {limitation}")
+        context = incident.log_context
+        if context is not None:
+            line(
+                f"  Related log context (time proximity only; not a verified cause): "
+                f"{context.availability}"
+            )
+            line(
+                f"  Log-time window ns: {context.window_start_time_ns} .. "
+                f"{context.window_end_time_ns}; matching: {context.matching_log_count}; "
+                f"omitted by limit: {context.omitted_log_count}"
+            )
+            for entry in context.logs:
+                line(f"    {entry.level_name} [{entry.logger}]: {entry.message}")
+                line(
+                    f"    Source stamp ns: {entry.stamp_time_ns}; "
+                    f"source: {entry.file}:{entry.line} ({entry.function})"
+                )
+                ref = entry.evidence
+                line(
+                    f"    Context reference: message #{ref.message_index}, "
+                    f"channel {ref.channel_id}, "
+                    f"topic {ref.topic}, sequence {ref.sequence}, log ns {ref.log_time_ns}, "
+                    f"publish ns {ref.publish_time_ns}, field {ref.field_path}"
+                )
+            for limitation in context.limitations:
+                line(f"  Context limitation: {limitation}")
         for step in incident.recommended_steps:
             line(f"  Verify: {step}")
     line("Coverage / insufficient evidence")

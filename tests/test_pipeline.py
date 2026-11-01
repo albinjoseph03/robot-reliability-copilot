@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from rich.console import Console
 from typer.testing import CliRunner
 
+from robotcopilot import __version__
 from robotcopilot.analysis import analyze
 from robotcopilot.cli import app
 from robotcopilot.ingestion import DIAGNOSTIC_TYPE, STATUS_TYPE, RecordingError
@@ -381,5 +382,5 @@ def test_terminal_telemetry_is_literal_and_control_sequences_are_escaped(diagnos
 def test_cli_help_version_and_report_schema():
     assert runner.invoke(app, ["--help"]).exit_code == 0
     result = runner.invoke(app, ["--version"])
-    assert result.exit_code == 0 and "0.1.0" in result.output
+    assert result.exit_code == 0 and __version__ in result.output
     assert json.loads(runner.invoke(app, ["schema"]).output)["title"] == "Report"

@@ -34,6 +34,14 @@ recorder/distribution combination and benchmark representative large recordings
 before advertising memory or performance budgets. Collect developer feedback
 through reproducible issue reports before broadening detector scope.
 
+## Completed: log context (0.2.0)
+
+Recorded ROS Log messages can now accompany existing incidents, with exact
+references, configurable windows and limits, explicit coverage and temporal-only
+association. A fresh Nav2/Gazebo capture verifies the real missing-BT server log
+against native client results and the untouched CLI recording. Unrelated logs
+create no incidents. See [the feature contract](LOG_CONTEXT.md).
+
 ## Then: improve reliability based on users
 
 - Ask five robotics developers to analyze one permitted recording and explain

@@ -77,6 +77,27 @@ def analyze(
         float,
         typer.Option("--gap-factor", help="Flag intervals strictly longer than this many periods."),
     ] = 3.0,
+    context_window: Annotated[
+        float,
+        typer.Option(
+            "--context-window",
+            help="Nearby log window in seconds before/after "
+            "first incident observation; 0 disables (maximum 3600).",
+        ),
+    ] = 5.0,
+    max_context_logs: Annotated[
+        int,
+        typer.Option(
+            "--max-context-logs",
+            min=1,
+            max=1000,
+            help="Keep this many nearest WARN-or-higher logs per incident.",
+        ),
+    ] = 20,
+    log_topic: Annotated[
+        list[str] | None,
+        typer.Option("--log-topic", help="ROS Log topic; repeatable. Overrides default /rosout."),
+    ] = None,
     max_messages: Annotated[int, typer.Option("--max-messages", min=1)] = 1_000_000,
     max_events: Annotated[int, typer.Option("--max-events", min=1)] = 1_000_000,
     max_record_bytes: Annotated[int, typer.Option("--max-record-bytes", min=1)] = 64 * 1024 * 1024,
@@ -99,6 +120,9 @@ def analyze(
             max_messages=max_messages,
             max_events=max_events,
             max_record_bytes=max_record_bytes,
+            log_topics=log_topic if log_topic is not None else ["/rosout"],
+            context_window_seconds=context_window,
+            max_context_logs=max_context_logs,
         )
     except (ValueError, ValidationError) as exc:
         raise typer.BadParameter(literal(str(exc))) from exc

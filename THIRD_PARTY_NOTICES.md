@@ -42,6 +42,8 @@ the reviewed environment, not all future resolutions.
   DiagnosticArray, DiagnosticStatus, KeyValue, Header (Apache-2.0).
 - [ros2/rcl_interfaces](https://github.com/ros2/rcl_interfaces/tree/jazzy):
   Time, GoalStatusArray, GoalStatus, GoalInfo (Apache-2.0).
+  The synthetic Log schema and embedded native rosout definitions are also
+  from rcl_interfaces (Apache-2.0).
 - [ros2/unique_identifier_msgs](https://github.com/ros2/unique_identifier_msgs):
   UUID (BSD-3-Clause; [retained upstream notice](licenses/UUID-BSD-3-Clause.txt),
   copyright (C) 2012 Jack O'Quin).

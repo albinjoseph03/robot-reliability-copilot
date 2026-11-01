@@ -6,7 +6,8 @@ Find evidence-backed incidents in ROS 2 recordings without uploading robot data.
 
 `robotcopilot` is an early, deterministic Python CLI for MCAP recordings. It
 reports diagnostic severity episodes, explicitly configured navigation aborts,
-and configured telemetry gaps. Every finding links back to recorded messages.
+and configured telemetry gaps, with nearby recorded ROS log context. Every
+finding and context entry links back to recorded messages.
 It does not infer a root cause or use an LLM.
 
 ## Install and run
@@ -51,6 +52,30 @@ robotcopilot --help
 On PowerShell, put the analyze command on one line or use its backtick line
 continuation instead of `\`. Options may be repeated for multiple topics.
 
+## Nearby log context (0.2)
+
+Try the native Nav2 fixture, including recorded `/rosout`, without installing ROS:
+
+```bash
+uv run robotcopilot analyze tests/fixtures/ros2_jazzy/navigation_context/recording.mcap \
+  --navigation-status-topic /navigate_to_pose/_action/status
+```
+
+Expected: **30 messages, one abort incident, seven nearby WARN-or-higher logs**,
+including the server's recorded missing-behavior-tree error. Successful and
+canceled goals are excluded. The deliberately unrelated warning is context only.
+
+Context defaults to the 20 nearest logs within **five seconds before/after the
+first incident observation**, returned in chronological order. It is labelled
+**time proximity only**, separate from detector evidence and hypotheses.
+`--context-window 2` changes the window, `--max-context-logs 10` changes the cap,
+`--log-topic /robot/rosout` overrides the default topic (repeatable), and
+`--context-window 0` disables it. Missing or undecodable logs and omitted matches
+are explicit. See [the context contract and validation](docs/LOG_CONTEXT.md).
+
+JSON reports now declare `report_version: "0.2"`; consumers should use
+`robotcopilot schema` to obtain the updated contract.
+
 ## Supported evidence
 
 | Rule | Input and behavior | What it cannot establish |
@@ -58,6 +83,7 @@ continuation instead of `\`. Options may be repeated for multiple topics.
 | Diagnostic severity transitions | `diagnostic_msgs/msg/DiagnosticArray`, embedded `ros2msg` schema + CDR; WARN/ERROR/STALE episodes per topic, name, hardware ID; same-level repeats aggregated | Physical root cause, actual onset, recovery without a later state |
 | Navigation abort | `action_msgs/msg/GoalStatusArray` on an explicitly configured navigation topic; one ABORTED (6) finding per topic and UUID | Nav2 error code, rejected goal, generic log warning, canceled goal as failure |
 | Missing telemetry | Inter-message intervals exceeding `gap-factor / expected Hz`, using MCAP log time and explicit continuous-rate configuration | Failure of publisher, rate of intermittent topics, whole-topic absence, startup/shutdown gaps |
+| Related log context | `rcl_interfaces/msg/Log` (or `rcl_interfaces/Log`) on configured topics, embedded ros2msg/CDR; numeric levels >=30 | Causation, logger relevance, a navigation failure without action evidence |
 
 ROS interface layouts were checked against Jazzy definitions. Navigation is
 supported at the generic ROS 2 action-status schema level. Equivalent two-part
@@ -109,7 +135,7 @@ prove that the underlying physical condition was fixed. Hypotheses stay empty.
   usage is exit 2. There is no CI regression pass/fail policy yet.
 
 The analyzer does not execute recorded content, extract attachments, or send
-data over a network. Reports can contain sensitive names and telemetry; review
+data over a network. Reports can contain sensitive names, log text, source paths and telemetry; review
 before sharing. See [SECURITY.md](SECURITY.md).
 
 ## Development and project direction
