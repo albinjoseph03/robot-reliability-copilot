@@ -1,0 +1,143 @@
+# Robot Reliability Copilot
+
+[![CI](https://github.com/albinjoseph03/robot-reliability-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/albinjoseph03/robot-reliability-copilot/actions/workflows/ci.yml)
+
+Find evidence-backed incidents in ROS 2 recordings without uploading robot data.
+
+`robotcopilot` is an early, deterministic Python CLI for MCAP recordings. It
+reports diagnostic severity episodes, explicitly configured navigation aborts,
+and configured telemetry gaps. Every finding links back to recorded messages.
+It does not infer a root cause or use an LLM.
+
+## Install and run
+
+Python 3.11+ is required. No ROS installation is needed for offline analysis.
+This repository has not been published to PyPI; install from this checkout.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first, or
+use the pip alternative below.
+
+```bash
+git clone https://github.com/albinjoseph03/robot-reliability-copilot.git
+cd robot-reliability-copilot
+uv sync --locked --dev
+uv run robotcopilot sample demo.mcap
+uv run robotcopilot analyze demo.mcap
+uv run robotcopilot analyze demo.mcap --format json --output report.json
+```
+
+Alternatively, create a virtual environment and run `python -m pip install .`
+from this directory; then use `robotcopilot` directly. Activate with
+`.venv\Scripts\Activate.ps1` on PowerShell or `source .venv/bin/activate` on POSIX.
+
+The sample is synthetic: **OK → ERROR → ERROR → OK**. Expected result: four
+messages, one ERROR incident, two severity observations, and a later observed
+OK transition. Its first ERROR is at **1700000001000000000 ns**, on
+`/diagnostics`, message **#2**, field **status[0]**. This scenario is a software
+fixture, not proof of a physical overtemperature or a Nav2 simulation.
+
+Sample and report files are created exclusively; choose a new filename if one
+already exists. Input recordings are never overwritten.
+
+```bash
+# Point at an individual .mcap, not a rosbag2 directory.
+robotcopilot analyze recording_0.mcap \
+  --navigation-status-topic /navigate_to_pose/_action/status \
+  --expect-rate /odom=10 --gap-factor 3
+
+robotcopilot schema > report.schema.json
+robotcopilot --help
+```
+
+On PowerShell, put the analyze command on one line or use its backtick line
+continuation instead of `\`. Options may be repeated for multiple topics.
+
+## Supported evidence
+
+| Rule | Input and behavior | What it cannot establish |
+| --- | --- | --- |
+| Diagnostic severity transitions | `diagnostic_msgs/msg/DiagnosticArray`, embedded `ros2msg` schema + CDR; WARN/ERROR/STALE episodes per topic, name, hardware ID; same-level repeats aggregated | Physical root cause, actual onset, recovery without a later state |
+| Navigation abort | `action_msgs/msg/GoalStatusArray` on an explicitly configured navigation topic; one ABORTED (6) finding per topic and UUID | Nav2 error code, rejected goal, generic log warning, canceled goal as failure |
+| Missing telemetry | Inter-message intervals exceeding `gap-factor / expected Hz`, using MCAP log time and explicit continuous-rate configuration | Failure of publisher, rate of intermittent topics, whole-topic absence, startup/shutdown gaps |
+
+ROS interface layouts were checked against Jazzy definitions. Navigation is
+supported at the generic ROS 2 action-status schema level. Equivalent two-part
+ROS 2 names (`action_msgs/GoalStatusArray`, `diagnostic_msgs/DiagnosticArray`)
+are also supported; original names remain in metadata. Nav2 action results and
+service event recordings are not decoded in this increment.
+
+Runtime validation passed on ROS 2 Jazzy, rosbag2 0.26.11, Nav2 1.3.13 and
+Gazebo Harmonic 8.15.0 in Ubuntu 24.04 / WSL2. This combination has a rosbag2
+action-status schema omission: the integration harness preserves the raw CLI
+capture and uses a native writer companion with the equivalent two-part type
+name. It verifies identical CDR bytes/publish timestamps and client goal UUIDs.
+See [actual integration results](docs/INTEGRATION_RESULTS.md).
+
+## Reports and coverage
+
+Terminal and JSON reports include file hash, profile/writer, per-channel types,
+encodings, counts and log-time bounds; a chronological incident timeline;
+evidence; verification steps; and detection limitations. JSON timestamps remain
+integer nanoseconds. JavaScript consumers must preserve large JSON integers
+(for example with a lossless JSON parser); native `JSON.parse` can round them.
+
+Message identity is the file SHA-256 plus one-based physical message traversal
+ordinal and field path. Channel and sequence are also included; sequences can
+repeat. A diagnostic header timestamp is retained separately. No timestamp is
+assumed to be wall-clock UTC. Incident IDs are deterministic within a report.
+
+Unsupported messages remain counted and are reported as coverage gaps. Decode
+errors retain message references and break diagnostic continuity. Missing or
+empty diagnostic data means **unknown**, not healthy. Unresolved incident end
+times are `null`. A transition to another severity ends an episode but does not
+prove that the underlying physical condition was fixed. Hypotheses stay empty.
+
+## Current limits
+
+- One local MCAP file at a time. No SQLite `.db3`, ROS 1 bags, bag-directory
+  aggregation, external schema lookup, IDL decoding, live monitoring or LLM.
+- The recording activity summary describes message/incident counts, not robot
+  motion, task completion or scene understanding.
+- The official Python MCAP reader/ROS 2 decoder is used. Compressed Zstd/LZ4 and
+  files without summary indexes are covered by synthetic tests.
+- Fatal container corruption returns exit 1 without a partial report. Payload
+  decode failures can produce a report with explicit incomplete coverage.
+- Defaults: 64 MiB outer MCAP record limit, one million messages and one
+  million retained observations; adjustable CLI options. Counts come from a
+  full scan. Sorting observations costs memory; this is not yet a large-fleet
+  or bounded-memory tool. Compressed expansion is not fully bounded.
+- Analysis success is exit 0 even if incidents or coverage gaps exist. Invalid
+  usage is exit 2. There is no CI regression pass/fail policy yet.
+
+The analyzer does not execute recorded content, extract attachments, or send
+data over a network. Reports can contain sensitive names and telemetry; review
+before sharing. See [SECURITY.md](SECURITY.md).
+
+## Development and project direction
+
+```bash
+uv sync --locked --dev
+uv run pytest -q
+uv run ruff check .
+uv run ruff format --check .
+uv build
+```
+
+- [Research and alternatives](docs/RESEARCH.md)
+- [Architecture, detector contract and milestones](docs/ARCHITECTURE.md)
+- [Validation: evidence and limits](docs/VALIDATION.md)
+- [ROS 2 / Nav2 reproduction path](docs/ROS_REPRODUCTION.md)
+- [Technical roadmap](docs/ROADMAP.md)
+- [Commercial hypotheses](docs/COMMERCIAL_STRATEGY.md)
+- [Contributing](CONTRIBUTING.md), [Code of conduct](CODE_OF_CONDUCT.md)
+
+Bug reports and detector proposals are welcome through
+[GitHub Issues](https://github.com/albinjoseph03/robot-reliability-copilot/issues).
+Include a minimal synthetic reproduction and the coverage/evidence output.
+Report vulnerabilities privately using [the security policy](SECURITY.md).
+
+Apache-2.0. Synthetic values are original project fixtures. Standard ROS
+interface definitions and dependencies retain their upstream licenses; see
+[third-party notices](THIRD_PARTY_NOTICES.md). No external robot datasets are
+included. Small original ROS/Nav2 recordings and their ground truth are retained
+as regression fixtures. Runtime compatibility claims cover only the tested
+combination and documented schema workaround; broader CI and release validation remain.

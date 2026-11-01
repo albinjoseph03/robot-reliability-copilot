@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "robot-reliability-copilot"
+version = "0.1.0"
+description = "Offline, evidence-backed ROS 2 MCAP incident analysis"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "THIRD_PARTY_NOTICES.md", "licenses/*.txt"]
+authors = [{name = "Robot Reliability Copilot contributors"}]
+dependencies = [
+  "mcap>=1.6,<2",
+  "mcap-ros2-support>=0.6,<0.7",
+  "pydantic>=2.14,<3",
+  "rich>=15,<16",
+  "typer>=0.27,<0.28",
+]
+
+[project.urls]
+Repository = "https://github.com/albinjoseph03/robot-reliability-copilot"
+Issues = "https://github.com/albinjoseph03/robot-reliability-copilot/issues"
+Documentation = "https://github.com/albinjoseph03/robot-reliability-copilot#readme"
+
+[project.scripts]
+robotcopilot = "robotcopilot.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=9.2,<10", "ruff>=0.17,<0.18", "build>=1.6,<2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/robotcopilot"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = [".wheel-check", ".venv", "dist", "artifacts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

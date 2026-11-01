@@ -1,0 +1,154 @@
+{
+  "kind": "rosbag2_diagnostics",
+  "topic": "/robotcopilot_test/diagnostics",
+  "source": "Original synthetic values published through real ROS 2 DDS",
+  "sent": [
+    {
+      "index": 0,
+      "level": 0,
+      "header_time_ns": 1793506548465247764
+    },
+    {
+      "index": 1,
+      "level": 1,
+      "header_time_ns": 1793506548868452759
+    },
+    {
+      "index": 2,
+      "level": 1,
+      "header_time_ns": 1793506549271753443
+    },
+    {
+      "index": 3,
+      "level": 2,
+      "header_time_ns": 1793506549674757505
+    },
+    {
+      "index": 4,
+      "level": 2,
+      "header_time_ns": 1793506550078055195
+    },
+    {
+      "index": 5,
+      "level": 0,
+      "header_time_ns": 1793506550481810882
+    }
+  ],
+  "bag": ".",
+  "metadata": {
+    "relative_file_paths": [
+      "recording.mcap"
+    ],
+    "message_count": 6,
+    "topics_with_message_count": [
+      {
+        "topic_metadata": {
+          "name": "/robotcopilot_test/diagnostics",
+          "type": "diagnostic_msgs/msg/DiagnosticArray",
+          "serialization_format": "cdr",
+          "offered_qos_profiles": [
+            {
+              "history": "unknown",
+              "depth": 0,
+              "reliability": "reliable",
+              "durability": "volatile",
+              "deadline": {
+                "sec": 9223372036,
+                "nsec": 854775807
+              },
+              "lifespan": {
+                "sec": 9223372036,
+                "nsec": 854775807
+              },
+              "liveliness": "automatic",
+              "liveliness_lease_duration": {
+                "sec": 9223372036,
+                "nsec": 854775807
+              },
+              "avoid_ros_namespace_conventions": false
+            }
+          ],
+          "type_description_hash": "RIHS01_5a8a36efb05fb25070fa0fb3810290c0e6cd4862b54a8fb975a1ee8dc55a333e"
+        },
+        "message_count": 6
+      }
+    ]
+  },
+  "environment": {
+    "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "ros_distro": "jazzy",
+    "rmw_implementation": "rmw_fastrtps_cpp",
+    "packages": [
+      "ros-jazzy-action-msgs\t2.0.4-1noble.20260911.052334",
+      "ros-jazzy-diagnostic-msgs\t5.3.8-1noble.20260911.111839",
+      "ros-jazzy-gz-cmake-vendor\t0.0.12-1noble.20260618.173318",
+      "ros-jazzy-gz-common-vendor\t0.0.10-1noble.20260905.033536",
+      "ros-jazzy-gz-dartsim-vendor\t0.0.3-1noble.20260225.232143",
+      "ros-jazzy-gz-fuel-tools-vendor\t0.0.6-1noble.20260905.065120",
+      "ros-jazzy-gz-gui-vendor\t0.0.5-1noble.20260905.071619",
+      "ros-jazzy-gz-math-vendor\t0.0.11-1noble.20260905.031649",
+      "ros-jazzy-gz-msgs-vendor\t0.0.8-1noble.20260905.033532",
+      "ros-jazzy-gz-ogre-next-vendor\t0.0.5-1noble.20260225.232146",
+      "ros-jazzy-gz-physics-vendor\t0.0.9-1noble.20260905.065116",
+      "ros-jazzy-gz-plugin-vendor\t0.0.5-1noble.20260820.145930",
+      "ros-jazzy-gz-rendering-vendor\t0.0.7-1noble.20260905.065113",
+      "ros-jazzy-gz-sensors-vendor\t0.0.6-1noble.20260905.071631",
+      "ros-jazzy-gz-sim-vendor\t0.0.13-1noble.20260905.073557",
+      "ros-jazzy-gz-tools-vendor\t0.0.8-1noble.20260820.143431",
+      "ros-jazzy-gz-transport-vendor\t0.0.9-1noble.20260905.065154",
+      "ros-jazzy-gz-utils-vendor\t0.0.5-1noble.20260618.173807",
+      "ros-jazzy-nav2-amcl\t1.3.13-1noble.20260921.024928",
+      "ros-jazzy-nav2-behavior-tree\t1.3.13-1noble.20260921.024958",
+      "ros-jazzy-nav2-behaviors\t1.3.13-1noble.20260921.031747",
+      "ros-jazzy-nav2-bringup\t1.3.13-1noble.20261006.042503",
+      "ros-jazzy-nav2-bt-navigator\t1.3.13-1noble.20260921.031756",
+      "ros-jazzy-nav2-collision-monitor\t1.3.13-1noble.20260921.030324",
+      "ros-jazzy-nav2-common\t1.3.13-1noble.20260920.234759",
+      "ros-jazzy-nav2-constrained-smoother\t1.3.13-1noble.20260921.031757",
+      "ros-jazzy-nav2-controller\t1.3.13-1noble.20260921.031754",
+      "ros-jazzy-nav2-core\t1.3.13-1noble.20260921.031435",
+      "ros-jazzy-nav2-costmap-2d\t1.3.13-1noble.20260921.024946",
+      "ros-jazzy-nav2-dwb-controller\t1.3.13-1noble.20260921.033150",
+      "ros-jazzy-nav2-graceful-controller\t1.3.13-1noble.20260921.031753",
+      "ros-jazzy-nav2-lifecycle-manager\t1.3.13-1noble.20260921.025008",
+      "ros-jazzy-nav2-map-server\t1.3.13-1noble.20260921.024942",
+      "ros-jazzy-nav2-minimal-tb3-sim\t1.0.1-1noble.20261006.041307",
+      "ros-jazzy-nav2-minimal-tb4-description\t1.0.1-1noble.20260915.195305",
+      "ros-jazzy-nav2-minimal-tb4-sim\t1.0.1-1noble.20261006.041301",
+      "ros-jazzy-nav2-mppi-controller\t1.3.13-1noble.20260921.031754",
+      "ros-jazzy-nav2-msgs\t1.3.13-1noble.20260921.023049",
+      "ros-jazzy-nav2-navfn-planner\t1.3.13-1noble.20260921.031752",
+      "ros-jazzy-nav2-planner\t1.3.13-1noble.20260921.031801",
+      "ros-jazzy-nav2-regulated-pure-pursuit-controller\t1.3.13-1noble.20260921.031808",
+      "ros-jazzy-nav2-rotation-shim-controller\t1.3.13-1noble.20260921.032338",
+      "ros-jazzy-nav2-route\t1.3.13-1noble.20260921.031810",
+      "ros-jazzy-nav2-rviz-plugins\t1.3.13-1noble.20260921.032725",
+      "ros-jazzy-nav2-simple-commander\t1.3.13-1noble.20260921.030016",
+      "ros-jazzy-nav2-smac-planner\t1.3.13-1noble.20260921.031850",
+      "ros-jazzy-nav2-smoother\t1.3.13-1noble.20260921.031906",
+      "ros-jazzy-nav2-theta-star-planner\t1.3.13-1noble.20260921.031959",
+      "ros-jazzy-nav2-util\t1.3.13-1noble.20260921.024419",
+      "ros-jazzy-nav2-velocity-smoother\t1.3.13-1noble.20260921.024954",
+      "ros-jazzy-nav2-voxel-grid\t1.3.13-1noble.20260921.023047",
+      "ros-jazzy-nav2-waypoint-follower\t1.3.13-1noble.20260921.031750",
+      "ros-jazzy-rclpy\t7.1.12-1noble.20260912.162354",
+      "ros-jazzy-ros-gz-bridge\t1.0.24-1noble.20260920.234644",
+      "ros-jazzy-ros-gz-image\t1.0.24-1noble.20260921.023911",
+      "ros-jazzy-ros-gz-interfaces\t1.0.24-1noble.20260911.110630",
+      "ros-jazzy-ros-gz-sim\t1.0.24-1noble.20261006.035056",
+      "ros-jazzy-rosbag2\t0.26.11-1noble.20261006.034645",
+      "ros-jazzy-rosbag2-compression\t0.26.11-1noble.20260911.145111",
+      "ros-jazzy-rosbag2-compression-zstd\t0.26.11-1noble.20260911.145430",
+      "ros-jazzy-rosbag2-cpp\t0.26.11-1noble.20260911.144538",
+      "ros-jazzy-rosbag2-interfaces\t0.26.11-1noble.20260911.094055",
+      "ros-jazzy-rosbag2-py\t0.26.11-1noble.20260912.163450",
+      "ros-jazzy-rosbag2-storage\t0.26.11-1noble.20260911.134637",
+      "ros-jazzy-rosbag2-storage-default-plugins\t0.26.11-1noble.20260911.144711",
+      "ros-jazzy-rosbag2-storage-mcap\t0.26.11-1noble.20260911.143733",
+      "ros-jazzy-rosbag2-storage-sqlite3\t0.26.11-1noble.20260911.143749",
+      "ros-jazzy-rosbag2-transport\t0.26.11-1noble.20260911.150336"
+    ]
+  },
+  "domain_id": 73
+}

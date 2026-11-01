@@ -1,0 +1,28 @@
+name: Bug report
+description: Report incorrect analysis or a reproducible CLI failure
+body:
+  - type: markdown
+    attributes:
+      value: Do not upload proprietary robot recordings, secrets or personal data. Prefer a synthetic fixture.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction command and minimal fixture-generation steps
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: OS, Python, robotcopilot, MCAP and ROS versions (where applicable)
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted incident evidence and coverage messages

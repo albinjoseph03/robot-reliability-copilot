@@ -1,0 +1,11 @@
+{
+  "kind": "rosbag2_diagnostics",
+  "status": "passed",
+  "recording_sha256": "1cde04d1fc2128f3879c3171a8d9ce8b68cae63f9a33b27425a0f335865bbac2",
+  "message_count": 6,
+  "incident_ids": [
+    "inc-d3de7e48ab79ade2",
+    "inc-770ef249aefe1067"
+  ],
+  "checked": "rosbag2 counts, decoding, ground-truth timestamps/UUIDs and negative controls"
+}

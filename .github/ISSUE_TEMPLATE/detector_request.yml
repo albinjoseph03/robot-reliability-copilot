@@ -1,0 +1,21 @@
+name: Detector proposal
+description: Propose a small evidence-backed rule
+body:
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Problem, message schemas, and exact failure evidence
+    validations:
+      required: true
+  - type: textarea
+    id: limits
+    attributes:
+      label: False positives, missing evidence and unsupported cases
+    validations:
+      required: true
+  - type: textarea
+    id: fixture
+    attributes:
+      label: Reproducible positive and negative scenarios, with data permission
+    validations:
+      required: true

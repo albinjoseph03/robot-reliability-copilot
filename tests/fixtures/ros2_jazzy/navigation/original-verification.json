@@ -1,0 +1,11 @@
+{
+  "kind": "nav2_gazebo",
+  "status": "passed",
+  "recording_sha256": "bc3a67255224ae526645beafe02599736751dc219dbaa7cb232e11df49229176",
+  "message_count": 7,
+  "incident_ids": [
+    "inc-beb37330509289d0"
+  ],
+  "payload_identity_verified": true,
+  "checked": "rosbag2 counts, decoding, ground-truth timestamps/UUIDs and negative controls"
+}

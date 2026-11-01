@@ -1,0 +1,8 @@
+Robot Reliability Copilot
+Copyright 2026 Robot Reliability Copilot contributors
+
+Contains combined ROS message field layouts from common_interfaces and
+rcl_interfaces (Apache-2.0) and unique_identifier_msgs (BSD-3-Clause).
+See THIRD_PARTY_NOTICES.md and licenses/UUID-BSD-3-Clause.txt for attribution
+and retained terms. Dependencies are installed separately and retain their
+own licenses.
