@@ -1,0 +1,281 @@
+{
+  "report_version": "0.2",
+  "tool_version": "0.2.0",
+  "recording": {
+    "path": "tests\\fixtures\\ros2_jazzy\\navigation_context\\recording.mcap",
+    "sha256": "6183da0a00f09d4b0e153a7a75a2db9b1fa71d69080e18162882cdbf37c29fca",
+    "size_bytes": 17141,
+    "profile": "ros2",
+    "library": "libmcap 1.3.1",
+    "message_count": 30,
+    "start_time_ns": 1793512916457512336,
+    "end_time_ns": 1793512921046576521,
+    "channels": [
+      {
+        "channel_id": 1,
+        "topic": "/navigate_to_pose/_action/status",
+        "schema_name": "action_msgs/GoalStatusArray",
+        "schema_encoding": "ros2msg",
+        "message_encoding": "cdr",
+        "message_count": 7,
+        "decoded_message_count": 7,
+        "skipped_message_count": 0,
+        "decode_error_count": 0,
+        "start_time_ns": 1793512918459902506,
+        "end_time_ns": 1793512921026182261
+      },
+      {
+        "channel_id": 2,
+        "topic": "/rosout",
+        "schema_name": "rcl_interfaces/msg/Log",
+        "schema_encoding": "ros2msg",
+        "message_encoding": "cdr",
+        "message_count": 23,
+        "decoded_message_count": 23,
+        "skipped_message_count": 0,
+        "decode_error_count": 0,
+        "start_time_ns": 1793512916457512336,
+        "end_time_ns": 1793512921046576521
+      }
+    ]
+  },
+  "config": {
+    "navigation_status_topics": [
+      "/navigate_to_pose/_action/status"
+    ],
+    "expected_rates_hz": {},
+    "gap_factor": 3.0,
+    "max_messages": 1000000,
+    "max_events": 1000000,
+    "max_record_bytes": 67108864,
+    "log_topics": [
+      "/rosout"
+    ],
+    "context_window_seconds": 5.0,
+    "max_context_logs": 20
+  },
+  "summary": "30 recorded messages; 1 incidents (1 error, 0 warning). Only supported, enabled detectors were assessed; this is not a robot health verdict.",
+  "time_basis": "MCAP log time; integer nanoseconds; not necessarily wall-clock UTC",
+  "evidence_identity": "recording SHA-256 + message_index + field_path",
+  "coverage": [
+    {
+      "code": "no_diagnostics",
+      "message": "No decodable diagnostic messages; diagnostic health is unknown.",
+      "channel_id": null,
+      "count": 1,
+      "first_evidence": null
+    },
+    {
+      "code": "gap_detection_not_configured",
+      "message": "Telemetry gaps are not assessed without configured rates.",
+      "channel_id": null,
+      "count": 1,
+      "first_evidence": null
+    }
+  ],
+  "incidents": [
+    {
+      "id": "inc-cd15ac69953704d8",
+      "category": "navigation",
+      "severity": "error",
+      "detector": "navigation_action_aborted/v1",
+      "start_time_ns": 1793512919956502670,
+      "end_time_ns": null,
+      "last_observed_time_ns": 1793512919956502670,
+      "occurrences": 1,
+      "component": null,
+      "explanation": "Navigation goal 6f4fc151c2474c29a73e6548db6bc501 reported action status ABORTED (6).",
+      "observations": {
+        "goal_id": "6f4fc151c2474c29a73e6548db6bc501",
+        "status": 6,
+        "goal_stamp_ns": 8877000000
+      },
+      "evidence": [
+        {
+          "message_index": 16,
+          "channel_id": 1,
+          "sequence": 0,
+          "topic": "/navigate_to_pose/_action/status",
+          "schema_name": "action_msgs/GoalStatusArray",
+          "log_time_ns": 1793512919956502670,
+          "publish_time_ns": 1793512919956046462,
+          "field_path": "status_list[1]"
+        }
+      ],
+      "limitations": [
+        "Navigation context comes from the explicitly configured status topic.",
+        "ABORTED is server-reported termination; no Nav2 result code or root cause is inferred.",
+        "Start is first observed abort status; actual termination time may be earlier.",
+        "Succeeded/canceled/rejected goals and action service results are not failure evidence here."
+      ],
+      "hypotheses": [],
+      "recommended_steps": [
+        "Match the goal UUID with the action client result and Nav2 server logs.",
+        "Inspect planner/controller errors, transforms and costmaps before assigning a cause."
+      ],
+      "log_context": {
+        "association": "time_proximity_only",
+        "availability": "available",
+        "window_start_time_ns": 1793512914956502670,
+        "window_end_time_ns": 1793512924956502670,
+        "matching_log_count": 7,
+        "omitted_log_count": 0,
+        "logs": [
+          {
+            "evidence": {
+              "message_index": 8,
+              "channel_id": 2,
+              "sequence": 0,
+              "topic": "/rosout",
+              "schema_name": "rcl_interfaces/msg/Log",
+              "log_time_ns": 1793512918483466938,
+              "publish_time_ns": 1793512918483053275,
+              "field_path": "msg"
+            },
+            "stamp_time_ns": 1793512918483035944,
+            "level": 30,
+            "level_name": "WARN",
+            "logger": "controller_server",
+            "message": "No goal checker was specified in parameter 'current_goal_checker'. Server will use only plugin loaded general_goal_checker . This warning will appear once.",
+            "file": "./src/controller_server.cpp",
+            "function": "findGoalCheckerId",
+            "line": 399
+          },
+          {
+            "evidence": {
+              "message_index": 9,
+              "channel_id": 2,
+              "sequence": 0,
+              "topic": "/rosout",
+              "schema_name": "rcl_interfaces/msg/Log",
+              "log_time_ns": 1793512918483473778,
+              "publish_time_ns": 1793512918483121089,
+              "field_path": "msg"
+            },
+            "stamp_time_ns": 1793512918483115562,
+            "level": 30,
+            "level_name": "WARN",
+            "logger": "controller_server",
+            "message": "No progress checker was specified in parameter 'current_progress_checker'. Server will use only plugin loaded progress_checker . This warning will appear once.",
+            "file": "./src/controller_server.cpp",
+            "function": "findProgressCheckerId",
+            "line": 441
+          },
+          {
+            "evidence": {
+              "message_index": 14,
+              "channel_id": 2,
+              "sequence": 0,
+              "topic": "/rosout",
+              "schema_name": "rcl_interfaces/msg/Log",
+              "log_time_ns": 1793512919742736801,
+              "publish_time_ns": 1793512919742692781,
+              "field_path": "msg"
+            },
+            "stamp_time_ns": 1793512919742598986,
+            "level": 30,
+            "level_name": "WARN",
+            "logger": "robotcopilot_nav2_fixture",
+            "message": "Unrelated fixture warning; no navigation failure implied.",
+            "file": "/mnt/f/Funny Apps/Robotics Copilot/scripts/integration/capture_ros.py",
+            "function": "capture_navigation",
+            "line": 446
+          },
+          {
+            "evidence": {
+              "message_index": 17,
+              "channel_id": 2,
+              "sequence": 0,
+              "topic": "/rosout",
+              "schema_name": "rcl_interfaces/msg/Log",
+              "log_time_ns": 1793512919954565322,
+              "publish_time_ns": 1793512919954435026,
+              "field_path": "msg"
+            },
+            "stamp_time_ns": 1793512919954407426,
+            "level": 40,
+            "level_name": "ERROR",
+            "logger": "bt_navigator",
+            "message": "Couldn't open input XML file: /mnt/f/Funny Apps/Robotics Copilot/artifacts/nav2-rosout-v1/intentionally-missing-bt.xml",
+            "file": "/opt/ros/jazzy/include/nav2_behavior_tree/bt_action_server_impl.hpp",
+            "function": "loadBehaviorTree",
+            "line": 258
+          },
+          {
+            "evidence": {
+              "message_index": 18,
+              "channel_id": 2,
+              "sequence": 0,
+              "topic": "/rosout",
+              "schema_name": "rcl_interfaces/msg/Log",
+              "log_time_ns": 1793512919955282893,
+              "publish_time_ns": 1793512919955067942,
+              "field_path": "msg"
+            },
+            "stamp_time_ns": 1793512919955050456,
+            "level": 40,
+            "level_name": "ERROR",
+            "logger": "bt_navigator",
+            "message": "BT file not found: /mnt/f/Funny Apps/Robotics Copilot/artifacts/nav2-rosout-v1/intentionally-missing-bt.xml. Navigation canceled.",
+            "file": "./src/navigators/navigate_to_pose.cpp",
+            "function": "goalReceived",
+            "line": 104
+          },
+          {
+            "evidence": {
+              "message_index": 19,
+              "channel_id": 2,
+              "sequence": 0,
+              "topic": "/rosout",
+              "schema_name": "rcl_interfaces/msg/Log",
+              "log_time_ns": 1793512919956079823,
+              "publish_time_ns": 1793512919955920163,
+              "field_path": "msg"
+            },
+            "stamp_time_ns": 1793512919955900707,
+            "level": 30,
+            "level_name": "WARN",
+            "logger": "bt_navigator",
+            "message": "[navigate_to_pose] [ActionServer] Aborting handle.",
+            "file": "/opt/ros/jazzy/include/nav2_util/nav2_util/simple_action_server.hpp",
+            "function": "warn_msg",
+            "line": 633
+          },
+          {
+            "evidence": {
+              "message_index": 24,
+              "channel_id": 2,
+              "sequence": 0,
+              "topic": "/rosout",
+              "schema_name": "rcl_interfaces/msg/Log",
+              "log_time_ns": 1793512921025097437,
+              "publish_time_ns": 1793512921024706306,
+              "field_path": "msg"
+            },
+            "stamp_time_ns": 1793512921024672858,
+            "level": 40,
+            "level_name": "ERROR",
+            "logger": "bt_navigator_navigate_to_pose_rclcpp_node",
+            "message": "Failed to get result for follow_path in node halt!",
+            "file": "./include/nav2_behavior_tree/bt_action_node.hpp",
+            "function": "halt",
+            "line": 329
+          }
+        ],
+        "limitations": [
+          "Logs are associated by MCAP log-time proximity only; they may be unrelated and do not establish a cause or create an incident.",
+          "The window surrounds the first observed incident timestamp, not its entire duration.",
+          "Source log stamps are preserved separately; clock differences and delayed delivery can distort proximity. Absence of recorded logs is not evidence of no errors.",
+          "The recording does not span the entire requested context window."
+        ]
+      }
+    }
+  ],
+  "limitations": [
+    "Chronology uses MCAP log time; clock resets or mixed clock domains can distort ordering.",
+    "No causal correlation, real-world activity reconstruction or root-cause inference is performed.",
+    "Unsupported payloads and missing evidence cannot establish that a robot was healthy.",
+    "CRC validation covers checksums present in the file, not authenticity or every structural invariant.",
+    "Resource limits are guardrails; use OS isolation for hostile files or decompression bombs."
+  ]
+}

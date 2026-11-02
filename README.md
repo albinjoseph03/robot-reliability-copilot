@@ -1,6 +1,8 @@
 # Robot Reliability Copilot
 
 [![CI](https://github.com/albinjoseph03/robot-reliability-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/albinjoseph03/robot-reliability-copilot/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/albinjoseph03/robot-reliability-copilot)](https://github.com/albinjoseph03/robot-reliability-copilot/releases/latest)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
 Find evidence-backed incidents in ROS 2 recordings without uploading robot data.
 
@@ -13,9 +15,28 @@ It does not infer a root cause or use an LLM.
 ## Install and run
 
 Python 3.11+ is required. No ROS installation is needed for offline analysis.
-This repository has not been published to PyPI; install from this checkout.
-Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first, or
-use the pip alternative below.
+Install the published v0.2.0 wheel in an activated Python virtual environment:
+
+```bash
+python -m pip install "https://github.com/albinjoseph03/robot-reliability-copilot/releases/download/v0.2.0/robot_reliability_copilot-0.2.0-py3-none-any.whl"
+robotcopilot --version
+robotcopilot sample demo.mcap
+robotcopilot analyze demo.mcap
+```
+
+Expected: **version 0.2.0, four recorded messages, one diagnostic ERROR incident**.
+The demo intentionally records an error; finding it means the demo worked.
+See the [Windows, Linux and macOS quickstart](docs/QUICKSTART.md) for isolated
+installation and JSON output. No account or robot is needed to try the demo.
+
+The [release page](https://github.com/albinjoseph03/robot-reliability-copilot/releases/tag/v0.2.0)
+includes the wheel, source archive, SHA-256 checksums and release notes.
+The project is not published to PyPI.
+
+### Run from source
+
+For the bundled native ROS fixtures or development, install
+[uv](https://docs.astral.sh/uv/getting-started/installation/) and clone the project:
 
 ```bash
 git clone https://github.com/albinjoseph03/robot-reliability-copilot.git
@@ -64,6 +85,9 @@ uv run robotcopilot analyze tests/fixtures/ros2_jazzy/navigation_context/recordi
 Expected: **30 messages, one abort incident, seven nearby WARN-or-higher logs**,
 including the server's recorded missing-behavior-tree error. Successful and
 canceled goals are excluded. The deliberately unrelated warning is context only.
+Read the [example JSON report](docs/examples/nav2-report.json) to inspect the
+evidence and log references before installing anything. It was generated with
+the published v0.2.0 wheel against this saved native fixture.
 
 Context defaults to the 20 nearest logs within **five seconds before/after the
 first incident observation**, returned in chronological order. It is labelled
@@ -160,6 +184,12 @@ Bug reports and detector proposals are welcome through
 [GitHub Issues](https://github.com/albinjoseph03/robot-reliability-copilot/issues).
 Include a minimal synthetic reproduction and the coverage/evidence output.
 Report vulnerabilities privately using [the security policy](SECURITY.md).
+
+Trying this on another ROS distribution or recorder? Include the tool version,
+ROS/recorder versions, topic types, exact command and expected versus observed
+findings. A small permitted reproduction helps us expand tested compatibility.
+See [community announcement drafts and a short demo script](docs/COMMUNITY_LAUNCH.md)
+if you would like to introduce the project to other robotics developers.
 
 Apache-2.0. Synthetic values are original project fixtures. Standard ROS
 interface definitions and dependencies retain their upstream licenses; see
